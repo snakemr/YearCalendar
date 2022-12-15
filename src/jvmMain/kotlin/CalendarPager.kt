@@ -10,6 +10,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
@@ -52,6 +53,7 @@ fun CalendarPager(
     val yearState = rememberLazyListState()
     var scrolling by remember { mutableStateOf(true) }
     var thin by remember { mutableStateOf(false) }
+    val density = LocalDensity.current
 
     val (weeks, years) = remember(start, end, rulers) {
         if (CalendarPager.Weeks in rulers || CalendarPager.Years in rulers) {
@@ -268,7 +270,9 @@ fun CalendarPager(
     Row {
         stickyColumn()
         LazyRow(Modifier.fillMaxWidth().onGloballyPositioned {
-            thin = it.size.width < 500
+            with(density) {
+                thin = it.size.width.toDp() < 500.dp
+            }
         }.horizontalSnapHelper(dayState), dayState) {
             items(size) {
                 val date by remember {
