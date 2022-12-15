@@ -1,9 +1,11 @@
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.*
+import androidx.compose.foundation.lazy.LazyItemScope
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
@@ -21,9 +23,7 @@ import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.time.temporal.WeekFields
 import java.util.*
-import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.sign
 
 private val minDate = LocalDate.of(1, 1, 1)
 private val maxDate = LocalDate.of(2999, 12, 31)
@@ -284,20 +284,4 @@ fun CalendarPager(
             }
         }
     }
-}
-
-@Composable
-fun Modifier.horizontalSnapHelper(state: LazyListState): Modifier {
-    val scope = rememberCoroutineScope()
-    return draggable(rememberDraggableState {
-        scope.launch { state.scrollBy(-it) }
-    }, Orientation.Horizontal, onDragStopped = {
-        val dx = if (state.firstVisibleItemScrollOffset >
-            state.layoutInfo.visibleItemsInfo.first().size / 2) 1 else 0
-        scope.launch { state.animateScrollToItem(state.firstVisibleItemIndex + dx) }
-    }).scrollable(rememberScrollableState {
-        if (!state.isScrollInProgress)
-            scope.launch { state.animateScrollToItem(max(0, state.firstVisibleItemIndex - it.sign.toInt())) }
-        0f
-    }, Orientation.Vertical, flingBehavior = ScrollableDefaults.flingBehavior())
 }
