@@ -1,9 +1,7 @@
 import androidx.compose.desktop.ui.tooling.preview.Preview
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.material.Card
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
@@ -47,19 +45,11 @@ fun App() {
             },
             start = range.first,
             end = range.second,
-            rulers = setOf(CalendarPager.EducMonths, CalendarPager.Weeks, CalendarPager.Days),
-            rulerItem = {
-                Card(Modifier.weight(1f).padding(3.dp), elevation = 5.dp) { it() } }
-            ,
             firstItemOffset = columnSettings.first,
-            divider = {
-//                Divider()
-//                Spacer(Modifier.height(2.dp))
-//                Divider()
-            },
-            stickyColumn = {
-                Box(Modifier.width(50.dp).fillMaxHeight().background(Color.LightGray))
-            }
+            rulers = setOf(CalendarPager.EducMonths, CalendarPager.Weeks, CalendarPager.Days),
+            rulerItem = { Card(Modifier.fillMaxWidth().padding(3.dp), elevation = 5.dp) { it() } },
+            //divider = { Divider() ; Spacer(Modifier.height(2.dp)) ; Divider() },
+            //stickyColumn = { Box(Modifier.width(50.dp).fillMaxHeight().background(Color.LightGray)) }
         ) {
             Box(Modifier.fillParentMaxWidth(1f/columnSettings.second).fillParentMaxHeight()) {
                 Text(

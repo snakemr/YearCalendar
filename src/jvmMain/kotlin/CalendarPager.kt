@@ -4,7 +4,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
-import androidx.compose.material.Divider
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
@@ -41,8 +40,8 @@ fun CalendarPager(
     end: LocalDate = maxDate,
     firstItemOffset: Int = 0,
     rulers: Set<CalendarPager> = CalendarPager.values().toSet() - CalendarPager.EducMonths,
-    rulerItem: (@Composable RowScope.(@Composable ()->Unit) -> Unit)? = null,
-    divider: @Composable () -> Unit = { Divider() },
+    rulerItem: (@Composable BoxScope.(@Composable ()->Unit) -> Unit)? = null,
+    divider: @Composable () -> Unit = {},
     stickyColumn: @Composable RowScope.() -> Unit = {},
     content: @Composable LazyItemScope.(LocalDate) -> Unit
 ) = Column(modifier) {
@@ -136,7 +135,7 @@ fun CalendarPager(
                 val back by animateColorAsState(
                     if (it == year) MaterialTheme.colors.secondary else Color.Unspecified
                 )
-                Text(it.year.toString(), Modifier.background(back).clickable {
+                @Composable fun Item() = Text(it.year.toString(), Modifier.background(back).clickable {
                     val new = (current ?: LocalDate.now()).withYear(it.year).inRange()
                     if (new != current) {
                         onChange(new)
@@ -144,7 +143,12 @@ fun CalendarPager(
                         scrollDays(new)
                     }
                 }.padding(horizontal = 15.dp, vertical = 4.dp))
-                if (index < years.size-1) Box(Modifier.background(Color.Gray).size(1.dp, 26.dp))
+                if (rulerItem != null) Box {
+                    rulerItem { Item() }
+                } else {
+                    Item()
+                    if (index < years.size-1) Box(Modifier.background(Color.Gray).size(1.dp, 26.dp))
+                }
             }
         }
         divider()
@@ -156,7 +160,7 @@ fun CalendarPager(
                 if (current?.month?.ordinal == (start + index) % 12)
                     MaterialTheme.colors.secondary else Color.Unspecified
             )
-            Text(name,
+            @Composable fun Item() = Text(name,
                 Modifier.weight(1f).background(back).clickable {
                     val it = current ?: LocalDate.now()
                     val new = it.withMonth((start + index) % 12 + 1).plusYears(
@@ -173,7 +177,12 @@ fun CalendarPager(
                 }.padding(4.dp),
                 textAlign = TextAlign.Center
             )
-            if (index < this.size-1) Box(Modifier.background(Color.Gray).width(1.dp).fillMaxHeight())
+            if (rulerItem != null) Box(Modifier.weight(1f)) {
+                rulerItem { Item() }
+            } else {
+                Item()
+                if (index < this.size-1) Box(Modifier.background(Color.Gray).width(1.dp).fillMaxHeight())
+            }
         }
         if (CalendarPager.EducMonths in rulers) {
             if (thin) Column {
@@ -202,7 +211,7 @@ fun CalendarPager(
                 val back by animateColorAsState(
                     if (it == week) MaterialTheme.colors.secondary else Color.Unspecified
                 )
-                Text(
+                @Composable fun Item() = Text(
                     if (thin)
                         it.format(format)
                     else
@@ -215,7 +224,12 @@ fun CalendarPager(
                             scrollDays(new)
                         }
                     }.padding(horizontal = 15.dp, vertical = 4.dp))
-                if (index < weeks.size-1) Box(Modifier.background(Color.Gray).size(1.dp, 26.dp))
+                if (rulerItem != null) Box {
+                    rulerItem { Item() }
+                } else {
+                    Item()
+                    if (index < weeks.size-1) Box(Modifier.background(Color.Gray).size(1.dp, 26.dp))
+                }
             }
         }
         divider()
@@ -240,9 +254,9 @@ fun CalendarPager(
                     color = if (index < 5) Color.Unspecified else MaterialTheme.colors.error,
                     textAlign = TextAlign.Center
                 )
-                if (rulerItem != null)
+                if (rulerItem != null) Box(Modifier.weight(1f)) {
                     rulerItem { Item() }
-                else {
+                } else {
                     Item()
                     if (index < 6) Box(Modifier.background(Color.Gray).width(1.dp).fillMaxHeight())
                 }
