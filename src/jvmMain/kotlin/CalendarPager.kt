@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -45,8 +46,8 @@ fun CalendarPager(
     divider: @Composable () -> Unit = {},
     stickyColumn: @Composable RowScope.() -> Unit = {},
     content: @Composable LazyItemScope.(LocalDate) -> Unit
-) = Column(modifier) {
-    val size = remember(start, end) { ChronoUnit.DAYS.between(start, end).toInt() + 1 }
+) = Column(modifier.background(MaterialTheme.colors.background)) {
+    val size = rememberSaveable(start, end) { ChronoUnit.DAYS.between(start, end).toInt() + 1 }
     val scope = rememberCoroutineScope()
     val dayState = rememberLazyListState()
     val weekState = rememberLazyListState()
@@ -55,7 +56,7 @@ fun CalendarPager(
     var thin by remember { mutableStateOf(false) }
     val density = LocalDensity.current
 
-    val (weeks, years) = remember(start, end, rulers) {
+    val (weeks, years) = rememberSaveable(start, end, rulers) {
         if (CalendarPager.Weeks in rulers || CalendarPager.Years in rulers) {
             val allDays = List(size) { start.plusDays(it.toLong()) }
             Pair(
@@ -85,7 +86,7 @@ fun CalendarPager(
             val offset = weeks.indexOf(new.with(dayOfWeek, 1))
             if (offset < weekState.firstVisibleItemIndex && offset >= 0 ||
                 offset >= weekState.firstVisibleItemIndex + weekState.layoutInfo.visibleItemsInfo.size - 1
-                ) if (animate) weekState.animateScrollToItem(offset) else weekState.scrollToItem(offset)
+            ) if (animate) weekState.animateScrollToItem(offset) else weekState.scrollToItem(offset)
         }
     }
 
@@ -95,25 +96,25 @@ fun CalendarPager(
         scrolling = true
         if (offset < dayState.firstVisibleItemIndex ||
             offset >= dayState.firstVisibleItemIndex + dayState.layoutInfo.visibleItemsInfo.size - 1 - first
-            ) if (animate) dayState.animateScrollToItem(offset) else dayState.scrollToItem(offset)
+        ) if (animate) dayState.animateScrollToItem(offset) else dayState.scrollToItem(offset)
         scrolling = false
     }
 
     fun LocalDate.inRange() = if (this < start) start else if (this > end) end else this
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(firstItemOffset) {
         (current ?: LocalDate.now()).let {
             dayState.scrollToItem(
                 ChronoUnit.DAYS.between(start, it).toInt() - min(firstItemOffset, it.dayOfWeek.ordinal)
             )
             scrollWeeks(it, false)
             scrollYears(it, false)
-            delay(100)
+            delay(1000)
             scrolling = false
         }
     }
 
-    val index = remember(current) { ChronoUnit.DAYS.between(start, current ?: LocalDate.now()).toInt() }
+    val index = rememberSaveable(current) { ChronoUnit.DAYS.between(start, current ?: LocalDate.now()).toInt() }
     LaunchedEffect(dayState.firstVisibleItemIndex, dayState.firstVisibleItemScrollOffset) {
         if (!scrolling) current?.let {
             val first = dayState.firstVisibleItemIndex + firstItemOffset +
@@ -144,7 +145,7 @@ fun CalendarPager(
                         scrollWeeks(new)
                         scrollDays(new)
                     }
-                }.padding(horizontal = 15.dp, vertical = 4.dp))
+                }.padding(horizontal = 15.dp, vertical = 4.dp), color = MaterialTheme.colors.onBackground)
                 if (rulerItem != null) Box {
                     rulerItem { Item() }
                 } else {
@@ -177,6 +178,7 @@ fun CalendarPager(
                         scrollDays(new)
                     }
                 }.padding(4.dp),
+                color = MaterialTheme.colors.onBackground,
                 textAlign = TextAlign.Center
             )
             if (rulerItem != null) Box(Modifier.weight(1f)) {
@@ -203,8 +205,8 @@ fun CalendarPager(
     }
 
     if (weeks != null) {
-        val dayOfWeek = remember { WeekFields.of(Locale.getDefault()).dayOfWeek() }
         val format = remember { DateTimeFormatter.ofPattern("dd MMM") }
+        val dayOfWeek = remember { WeekFields.of(Locale.getDefault()).dayOfWeek() }
         val week by remember(current) { derivedStateOf {
             current?.with(dayOfWeek, 1)
         } }
@@ -225,7 +227,7 @@ fun CalendarPager(
                             scrollYears(new)
                             scrollDays(new)
                         }
-                    }.padding(horizontal = 15.dp, vertical = 4.dp))
+                    }.padding(horizontal = 15.dp, vertical = 4.dp), color = MaterialTheme.colors.onBackground)
                 if (rulerItem != null) Box {
                     rulerItem { Item() }
                 } else {
@@ -253,7 +255,7 @@ fun CalendarPager(
                         scrollWeeks(new)
                         scrollDays(new)
                     }.padding(4.dp),
-                    color = if (index < 5) Color.Unspecified else MaterialTheme.colors.error,
+                    color = if (index < 5) MaterialTheme.colors.onBackground else MaterialTheme.colors.error,
                     textAlign = TextAlign.Center
                 )
                 if (rulerItem != null) Box(Modifier.weight(1f)) {
